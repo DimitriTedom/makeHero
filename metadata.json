@@ -1,0 +1,5 @@
+{
+  "name": "MLTI Hero Transformer",
+  "description": "An application that transforms your photo into a superhero version of yourself using the Gemini 2.5 Flash Image model. Upload your picture, choose a hero, and see the magic happen.",
+  "requestFramePermissions": []
+}

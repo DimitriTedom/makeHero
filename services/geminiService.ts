@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { toBase64 } from "../utils/fileUtils";
 
@@ -48,7 +47,20 @@ export const generateHeroImage = async (
         },
     });
 
-    for (const part of response.candidates[0].content.parts) {
+    const firstCandidate = response.candidates?.[0];
+
+    if (!firstCandidate || !firstCandidate.content || !firstCandidate.content.parts) {
+      console.error("Unexpected API response structure:", JSON.stringify(response, null, 2));
+
+      if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
+        console.error('Image generation stopped. Reason:', firstCandidate.finishReason);
+        throw new Error(`La génération d'image a été bloquée. Raison : ${firstCandidate.finishReason}`);
+      }
+      
+      throw new Error("Aucune image n'a été générée par l'API. La réponse du serveur est invalide.");
+    }
+
+    for (const part of firstCandidate.content.parts) {
         if (part.inlineData) {
             const base64ImageBytes: string = part.inlineData.data;
             return `data:${part.inlineData.mimeType};base64,${base64ImageBytes}`;
@@ -58,6 +70,10 @@ export const generateHeroImage = async (
     throw new Error("Aucune image n'a été générée par l'API.");
   } catch (error) {
     console.error("Erreur lors de la génération de l'image:", error);
+     if (error instanceof Error) {
+        // Pass the specific error message to the user
+        throw new Error(error.message || "La transformation a échoué. Veuillez réessayer.");
+    }
     throw new Error("La transformation a échoué. Veuillez réessayer.");
   }
 };
